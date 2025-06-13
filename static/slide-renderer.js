@@ -3,12 +3,21 @@ export class SlideRenderer {
   constructor() {
     this.slides = [];
     this.config = {};
+    console.log('SlideRenderer initialized');
   }
 
   async loadSlides() {
     try {
+      console.log('Loading slides from /api/slides...');
       const response = await fetch('/api/slides');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Slides loaded successfully:', data);
+      
       this.slides = data.slides;
       this.config = data.config;
       return true;
@@ -19,11 +28,16 @@ export class SlideRenderer {
   }
 
   renderSlide(slideIndex, isPresenter = false) {
+    console.log(`Rendering slide ${slideIndex}, isPresenter: ${isPresenter}`);
+    
     if (!this.slides || slideIndex >= this.slides.length || slideIndex < 0) {
+      console.error('Slide not found:', { slideIndex, totalSlides: this.slides.length });
       return '<div class="text-red-500">Slide not found</div>';
     }
 
     const slide = this.slides[slideIndex];
+    console.log('Rendering slide:', slide);
+    
     const modeIndicator = isPresenter 
       ? '<div class="mb-4 text-sm text-blue-400 font-semibold">🎤 PRESENTER MODE</div>'
       : '<div class="mb-4 text-sm text-green-400 font-semibold">👀 VIEWER MODE</div>';

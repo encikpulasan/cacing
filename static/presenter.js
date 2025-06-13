@@ -1,5 +1,7 @@
 import { SlideRenderer } from './slide-renderer.js';
 
+console.log('Presenter.js loaded');
+
 let currentSlide = 0;
 const isPresenter = true; // Always presenter mode
 const slideRenderer = new SlideRenderer();
@@ -7,6 +9,7 @@ const slideRenderer = new SlideRenderer();
 // Use Server-Sent Events to sync with other presenters (if any)
 const eventSource = new EventSource('/events');
 eventSource.onmessage = (event) => {
+  console.log('SSE message received:', event.data);
   const data = JSON.parse(event.data);
   if (data.type === 'slide') {
     currentSlide = data.index;
@@ -20,6 +23,7 @@ eventSource.onerror = (error) => {
 
 async function updateSlide(slideIndex) {
   try {
+    console.log('Updating slide to:', slideIndex);
     await fetch('/slide', {
       method: 'POST',
       headers: {
@@ -33,7 +37,14 @@ async function updateSlide(slideIndex) {
 }
 
 function renderSlide() {
+  console.log('renderSlide called, currentSlide:', currentSlide);
   const app = document.getElementById("app");
+  
+  if (!app) {
+    console.error('App element not found!');
+    return;
+  }
+  
   app.innerHTML = slideRenderer.renderSlide(currentSlide, isPresenter);
 
   // Keyboard navigation
@@ -98,13 +109,27 @@ function handleKeyPress(event) {
 
 // Initialize the app
 window.onload = async () => {
+  console.log('Window loaded, initializing presenter...');
   const app = document.getElementById("app");
-  app.innerHTML = '<div class="text-center">Loading slides...</div>';
   
-  const loaded = await slideRenderer.loadSlides();
-  if (loaded) {
-    renderSlide();
-  } else {
-    app.innerHTML = '<div class="text-red-500 text-center">Failed to load slides. Please check slides.json file.</div>';
+  if (!app) {
+    console.error('App element not found on window load!');
+    return;
+  }
+  
+  app.innerHTML = '<div class="text-center text-white">Loading slides...</div>';
+  
+  try {
+    const loaded = await slideRenderer.loadSlides();
+    if (loaded) {
+      console.log('Slides loaded successfully, rendering first slide');
+      renderSlide();
+    } else {
+      console.error('Failed to load slides');
+      app.innerHTML = '<div class="text-red-500 text-center">Failed to load slides. Please check slides.json file.</div>';
+    }
+  } catch (error) {
+    console.error('Error during initialization:', error);
+    app.innerHTML = '<div class="text-red-500 text-center">Error loading presentation: ' + error.message + '</div>';
   }
 }; 
