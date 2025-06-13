@@ -9,10 +9,26 @@
 </head>
 
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-    <div id="app" class="w-full h-full flex flex-col items-center justify-center">
-        <!-- Slides will be rendered here -->
+    <div class="text-center">
+        <h1 class="text-5xl font-bold mb-8">Realtime Slides</h1>
+        <p class="text-xl mb-12 text-gray-300">Synchronized presentation slides for everyone</p>
+
+        <div class="flex flex-col sm:flex-row gap-6 justify-center">
+            <a href="/presenter"
+                class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-xl font-semibold transition-colors">
+                🎤 Start Presenting
+            </a>
+            <a href="/viewer"
+                class="bg-green-600 hover:bg-green-700 px-8 py-4 rounded-lg text-xl font-semibold transition-colors">
+                👀 Join as Viewer
+            </a>
+        </div>
+
+        <div class="mt-12 text-sm text-gray-400">
+            <p>Built with Deno, Oak, TailwindCSS & Server-Sent Events</p>
+            <p class="mt-2">Deploy-ready for Deno Deploy</p>
+        </div>
     </div>
-    <script type="module" src="/static/app.js"></script>
 </body>
 
 </html>

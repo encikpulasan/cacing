@@ -9,7 +9,7 @@ const slides = [
   },
   {
     title: "Tech Stack",
-    content: "Deno, Oak, TailwindCSS, WebSocket, Deno Deploy",
+    content: "Deno, Oak, TailwindCSS, Server-Sent Events, Deno Deploy",
   },
   {
     title: "Enjoy!",
@@ -20,14 +20,35 @@ const slides = [
 let currentSlide = 0;
 let isPresenter = false;
 
-const ws = new WebSocket(`ws://${window.location.host}/ws`);
-ws.onmessage = (event) => {
-  const idx = parseInt(event.data, 10);
-  if (!isPresenter && !isNaN(idx)) {
-    currentSlide = idx;
+// Use Server-Sent Events instead of WebSocket
+const eventSource = new EventSource('/events');
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  if (data.type === 'slide' && !isPresenter) {
+    currentSlide = data.index;
     renderSlide();
   }
 };
+
+eventSource.onerror = (error) => {
+  console.log('SSE connection error:', error);
+};
+
+async function updateSlide(slideIndex) {
+  if (isPresenter) {
+    try {
+      await fetch('/slide', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ index: slideIndex }),
+      });
+    } catch (error) {
+      console.error('Failed to update slide:', error);
+    }
+  }
+}
 
 function renderSlide() {
   const app = document.getElementById("app");
@@ -49,17 +70,17 @@ function renderSlide() {
     </div>
   `;
 
-  document.getElementById("prev").onclick = () => {
+  document.getElementById("prev").onclick = async () => {
     if (currentSlide > 0) {
       currentSlide--;
-      if (isPresenter) ws.send(currentSlide);
+      await updateSlide(currentSlide);
       renderSlide();
     }
   };
-  document.getElementById("next").onclick = () => {
+  document.getElementById("next").onclick = async () => {
     if (currentSlide < slides.length - 1) {
       currentSlide++;
-      if (isPresenter) ws.send(currentSlide);
+      await updateSlide(currentSlide);
       renderSlide();
     }
   };
