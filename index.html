@@ -2,31 +2,210 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Realtime Slides</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Realtime Slides - Professional Presentations</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem !important;
+                line-height: 1.2;
+            }
+
+            .hero-subtitle {
+                font-size: 1.125rem !important;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-    <div class="text-center">
-        <h1 class="text-5xl font-bold mb-8">Realtime Slides</h1>
-        <p class="text-xl mb-12 text-gray-300">Synchronized presentation slides for everyone</p>
-
-        <div class="flex flex-col sm:flex-row gap-6 justify-center">
-            <a href="/presenter"
-                class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-xl font-semibold transition-colors">
-                🎤 Start Presenting
-            </a>
-            <a href="/viewer"
-                class="bg-green-600 hover:bg-green-700 px-8 py-4 rounded-lg text-xl font-semibold transition-colors">
-                👀 Join as Viewer
-            </a>
+<body class="gradient-bg min-h-screen text-white overflow-x-hidden">
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <!-- Header -->
+        <div class="text-center mb-12 max-w-4xl">
+            <h1 class="hero-title text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                Realtime Slides
+            </h1>
+            <p class="hero-subtitle text-xl md:text-2xl text-gray-200 mb-8 leading-relaxed">
+                Professional presentations with real-time synchronization.<br>
+                <span class="text-lg opacity-90">Write in Markdown, present with elegance.</span>
+            </p>
         </div>
 
-        <div class="mt-12 text-sm text-gray-400">
-            <p>Built with Deno, Oak, TailwindCSS & Server-Sent Events</p>
-            <p class="mt-2">Deploy-ready for Deno Deploy</p>
+        <!-- Mode Selection Cards -->
+        <div class="grid md:grid-cols-2 gap-8 max-w-4xl w-full mb-12">
+            <!-- Presenter Card -->
+            <div class="card rounded-2xl p-8 text-center">
+                <div class="mb-6">
+                    <div
+                        class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-3">Presenter Mode</h2>
+                    <p class="text-gray-300 mb-6 leading-relaxed">
+                        Control your presentation with full navigation, keyboard shortcuts, and real-time sync to all
+                        viewers.
+                    </p>
+                </div>
+
+                <div class="space-y-3 mb-8 text-sm text-gray-300">
+                    <div class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Keyboard navigation
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Full slide control
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Fullscreen mode
+                    </div>
+                </div>
+
+                <a href="/presenter"
+                    class="btn-primary inline-block px-8 py-4 rounded-xl font-semibold text-white text-lg w-full">
+                    Start Presenting
+                </a>
+            </div>
+
+            <!-- Viewer Card -->
+            <div class="card rounded-2xl p-8 text-center">
+                <div class="mb-6">
+                    <div
+                        class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500 bg-opacity-20 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-3">Viewer Mode</h2>
+                    <p class="text-gray-300 mb-6 leading-relaxed">
+                        Watch presentations that automatically sync with the presenter. Perfect for audiences and remote
+                        viewing.
+                    </p>
+                </div>
+
+                <div class="space-y-3 mb-8 text-sm text-gray-300">
+                    <div class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Real-time sync
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Mobile optimized
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        Clean interface
+                    </div>
+                </div>
+
+                <a href="/viewer"
+                    class="btn-secondary inline-block px-8 py-4 rounded-xl font-semibold text-white text-lg w-full">
+                    Join as Viewer
+                </a>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="max-w-4xl w-full">
+            <div class="card rounded-2xl p-6 md:p-8">
+                <h3 class="text-xl font-bold mb-4 text-center">✨ Key Features</h3>
+                <div class="grid md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <div class="text-2xl mb-2">📝</div>
+                        <div class="font-semibold mb-1">Markdown-Based</div>
+                        <div class="text-sm text-gray-300">Write slides in familiar Markdown syntax</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl mb-2">🔄</div>
+                        <div class="font-semibold mb-1">Real-Time Sync</div>
+                        <div class="text-sm text-gray-300">Instant updates across all devices</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl mb-2">📱</div>
+                        <div class="font-semibold mb-1">Mobile Ready</div>
+                        <div class="text-sm text-gray-300">Optimized for phones and tablets</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 text-center text-gray-300 text-sm">
+            <p>Built with Deno, Oak, and TailwindCSS • Deploy anywhere</p>
         </div>
     </div>
 </body>

@@ -3,14 +3,62 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Presenter - Realtime Slides</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles for professional look */
+        .slide-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .control-button {
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slide-content {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .control-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .slide-title {
+                font-size: 1.875rem !important;
+            }
+
+            .slide-text {
+                font-size: 1rem !important;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-    <div id="app" class="w-full h-full flex flex-col items-center justify-center">
-        <!-- Slides will be rendered here -->
+<body class="bg-gray-900 text-white overflow-hidden">
+    <div id="app" class="slide-container flex flex-col items-center justify-center w-full h-screen p-4">
+        <div class="text-center text-white">
+            <div class="animate-pulse">Loading presentation...</div>
+        </div>
     </div>
     <script type="module" src="/static/presenter.js"></script>
 </body>

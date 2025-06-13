@@ -3,15 +3,115 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Viewer - Realtime Slides</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles for elegant viewer experience */
+        .slide-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .viewer-badge {
+            backdrop-filter: blur(10px);
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .slide-content {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .fullscreen-button {
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+
+        .fullscreen-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .sync-indicator {
+            backdrop-filter: blur(10px);
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+
+        @media (max-width: 768px) {
+            .slide-title {
+                font-size: 1.875rem !important;
+                line-height: 1.2;
+            }
+
+            .slide-text {
+                font-size: 1rem !important;
+                line-height: 1.5;
+            }
+
+            .fullscreen-button {
+                bottom: 0.5rem;
+                right: 0.5rem;
+                padding: 0.5rem;
+            }
+
+            .sync-indicator {
+                top: 0.5rem;
+                right: 0.5rem;
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-    <div id="app" class="w-full h-full flex flex-col items-center justify-center">
-        <!-- Slides will be rendered here -->
+<body class="bg-gray-900 text-white overflow-hidden">
+    <!-- Sync Status Indicator -->
+    <div id="sync-status" class="sync-indicator rounded-full px-3 py-1 text-xs font-medium">
+        <span class="inline-block w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+        Synced
     </div>
+
+    <!-- Fullscreen Button -->
+    <button id="mobile-fullscreen" class="fullscreen-button rounded-full p-3 text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+        </svg>
+    </button>
+
+    <div id="app" class="slide-container flex flex-col items-center justify-center w-full h-screen p-4">
+        <div class="text-center text-white">
+            <div class="animate-pulse">Connecting to presentation...</div>
+        </div>
+    </div>
+
     <script type="module" src="/static/viewer.js"></script>
 </body>
 

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sync Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1f2937;
+            color: white;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .connected {
+            background: #10b981;
+        }
+
+        .disconnected {
+            background: #ef4444;
+        }
+
+        .slide-info {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Sync Test Page</h1>
+    <div id="status" class="status disconnected">Disconnected</div>
+    <div id="slide-info" class="slide-info">Current Slide: Unknown</div>
+
+    <h3>Test Controls:</h3>
+    <button onclick="sendSlide(0)">Go to Slide 1</button>
+    <button onclick="sendSlide(1)">Go to Slide 2</button>
+    <button onclick="sendSlide(2)">Go to Slide 3</button>
+    <button onclick="sendSlide(3)">Go to Slide 4</button>
+
+    <h3>SSE Messages:</h3>
+    <div id="messages" style="background: #374151; padding: 10px; border-radius: 5px; height: 200px; overflow-y: auto;">
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const slideInfoEl = document.getElementById('slide-info');
+        const messagesEl = document.getElementById('messages');
+
+        function addMessage(msg) {
+            const time = new Date().toLocaleTimeString();
+            messagesEl.innerHTML += `<div>[${time}] ${msg}</div>`;
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'status connected';
+            } else {
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'status disconnected';
+            }
+        }
+
+        // Connect to SSE
+        const eventSource = new EventSource('/events');
+
+        eventSource.onopen = () => {
+            updateStatus(true);
+            addMessage('SSE connection opened');
+        };
+
+        eventSource.onmessage = (event) => {
+            addMessage(`Raw message: ${event.data}`);
+            try {
+                // Handle Oak's double-wrapped format
+                const outerData = JSON.parse(event.data);
+                const actualData = JSON.parse(outerData.data);
+
+                addMessage(`Parsed data: ${JSON.stringify(actualData)}`);
+
+                if (actualData.type === 'slide') {
+                    slideInfoEl.textContent = `Current Slide: ${actualData.index + 1}`;
+                    addMessage(`✅ Slide updated to: ${actualData.index + 1}`);
+                }
+            } catch (error) {
+                addMessage(`❌ Parse error: ${error.message}`);
+            }
+        };
+
+        eventSource.onerror = (error) => {
+            updateStatus(false);
+            addMessage(`❌ SSE error: ${error}`);
+        };
+
+        // Function to send slide updates
+        async function sendSlide(index) {
+            try {
+                const response = await fetch('/slide', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index })
+                });
+
+                if (response.ok) {
+                    addMessage(`📤 Sent slide update: ${index + 1}`);
+                } else {
+                    addMessage(`❌ Failed to send slide update`);
+                }
+            } catch (error) {
+                addMessage(`❌ Send error: ${error.message}`);
+            }
+        }
+
+        addMessage('Test page loaded');
+    </script>
+</body>
+
+</html>
