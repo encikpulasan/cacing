@@ -44,6 +44,19 @@ real-time synchronization across all devices.
 - Touch/swipe support for mobile
 - **URL**: `/reader`
 
+### ✏️ Editor Mode (NEW!)
+
+- Browser-based slide creation and editing
+- Visual slide management with sidebar
+- Real-time preview panel
+- Support for multiple slide types:
+  - Text slides with bullet points
+  - Image slides
+  - Video slides
+- Background color customization
+- Add, update, and delete slides
+- Save changes directly to slides.md
+
 ## 🚀 Quick Start
 
 ### 1. Clone and Setup
@@ -116,6 +129,7 @@ deno run --allow-net --allow-read main.ts
 - **Presenter**: http://localhost:8000/presenter
 - **Viewer**: http://localhost:8000/viewer
 - **Reader**: http://localhost:8000/reader
+- **Editor**: http://localhost:8000/editor
 
 ## 📝 Markdown Slide Syntax
 
@@ -270,6 +284,8 @@ cacing/
 ├── index.html             # Landing page
 ├── presenter.html         # Presenter interface
 ├── viewer.html           # Viewer interface
+├── reader.html           # Reader interface
+├── editor.html           # Editor interface (NEW!)
 ├── static/
 │   ├── presenter.js      # Presenter logic
 │   ├── viewer.js         # Viewer logic
@@ -284,9 +300,12 @@ cacing/
 - `GET /` - Landing page
 - `GET /presenter` - Presenter interface
 - `GET /viewer` - Viewer interface
+- `GET /reader` - Reader interface
+- `GET /editor` - Editor interface (NEW!)
 - `GET /api/slides` - Slide data (parsed from markdown)
 - `GET /events` - Server-Sent Events for real-time sync
 - `POST /slide` - Update current slide (presenter only)
+- `POST /api/slides` - Save slides and configuration
 
 ### Adding New Features
 

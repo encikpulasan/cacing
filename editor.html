@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 400px;
+            height: 100vh;
+            gap: 1px;
+            background: #e2e8f0;
+        }
+
+        .sidebar {
+            background: white;
+            overflow-y: auto;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .main-editor {
+            background: white;
+            overflow-y: auto;
+        }
+
+        .preview-panel {
+            background: #1f2937;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-item {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .slide-item:hover {
+            background: #f1f5f9;
+        }
+
+        .slide-item.active {
+            background: #dbeafe;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .slide-preview {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .toolbar {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .list-item input {
+            flex: 1;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 32px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="editor-container">
+        <!-- Sidebar - Slide List -->
+        <div class="sidebar">
+            <div class="toolbar">
+                <button id="add-slide" class="btn btn-primary">+ Add Slide</button>
+            </div>
+            <div id="slide-list" class="slide-list">
+                <!-- Slides will be populated here -->
+            </div>
+        </div>
+
+        <!-- Main Editor -->
+        <div class="main-editor">
+            <div class="toolbar">
+                <button id="save-slides" class="btn btn-success">💾 Save All</button>
+                <button id="preview-mode" class="btn btn-secondary">👁️ Preview</button>
+                <button id="back-home" class="btn btn-secondary">🏠 Home</button>
+                <div class="ml-auto">
+                    <span id="save-status" class="text-sm text-gray-600"></span>
+                </div>
+            </div>
+
+            <div id="editor-form" class="p-6">
+                <div class="form-group">
+                    <label class="form-label">Slide Title</label>
+                    <input type="text" id="slide-title" class="form-input" placeholder="Enter slide title">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Content</label>
+                    <textarea id="slide-content" class="form-textarea" placeholder="Enter slide content"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">List Items</label>
+                    <div id="list-items">
+                        <!-- List items will be added here -->
+                    </div>
+                    <button type="button" id="add-list-item" class="btn btn-secondary mt-2">+ Add List Item</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Slide Type</label>
+                        <select id="slide-type" class="form-input">
+                            <option value="text">Text</option>
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Background Color</label>
+                        <input type="color" id="slide-background" class="color-picker" value="#1f2937">
+                    </div>
+                </div>
+
+                <div id="media-section" class="form-group" style="display: none;">
+                    <label class="form-label">Media URL</label>
+                    <input type="url" id="media-url" class="form-input" placeholder="Enter image or video URL">
+                    <div id="media-options" style="display: none;">
+                        <label class="form-label mt-2">Alt Text / Poster URL</label>
+                        <input type="text" id="media-alt" class="form-input" placeholder="Alt text or poster URL">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-6">
+                    <button id="update-slide" class="btn btn-primary">Update Slide</button>
+                    <button id="delete-slide" class="btn btn-danger">Delete Slide</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="preview-panel">
+            <div id="slide-preview" class="slide-preview">
+                <div class="text-center">
+                    <h2 class="text-xl mb-4">Slide Preview</h2>
+                    <p class="text-gray-300">Select a slide to preview</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SlideRenderer } from '/static/slide-renderer.js';
+
+        let slides = [];
+        let config = {};
+        let currentSlideIndex = -1;
+        const slideRenderer = new SlideRenderer();
+
+        // DOM elements
+        const slideList = document.getElementById('slide-list');
+        const slideTitle = document.getElementById('slide-title');
+        const slideContent = document.getElementById('slide-content');
+        const slideType = document.getElementById('slide-type');
+        const slideBackground = document.getElementById('slide-background');
+        const mediaUrl = document.getElementById('media-url');
+        const mediaAlt = document.getElementById('media-alt');
+        const mediaSection = document.getElementById('media-section');
+        const mediaOptions = document.getElementById('media-options');
+        const listItems = document.getElementById('list-items');
+        const slidePreview = document.getElementById('slide-preview');
+        const saveStatus = document.getElementById('save-status');
+
+        // Load slides on page load
+        async function loadSlides() {
+            try {
+                const response = await fetch('/api/slides');
+                const data = await response.json();
+                slides = data.slides || [];
+                config = data.config || {};
+
+                // Update slideRenderer with the loaded slides
+                slideRenderer.slides = slides;
+                slideRenderer.config = config;
+
+                renderSlideList();
+                if (slides.length > 0) {
+                    selectSlide(0);
+                }
+            } catch (error) {
+                console.error('Error loading slides:', error);
+                showStatus('Error loading slides', 'error');
+            }
+        }
+
+        // Render slide list in sidebar
+        function renderSlideList() {
+            slideList.innerHTML = '';
+            slides.forEach((slide, index) => {
+                const slideItem = document.createElement('div');
+                slideItem.className = `slide-item ${index === currentSlideIndex ? 'active' : ''}`;
+                slideItem.innerHTML = `
+                    <div class="font-medium text-sm">${slide.title || `Slide ${index + 1}`}</div>
+                    <div class="text-xs text-gray-500 mt-1">${slide.type || 'text'}</div>
+                `;
+                slideItem.addEventListener('click', () => selectSlide(index));
+                slideList.appendChild(slideItem);
+            });
+        }
+
+        // Select a slide for editing
+        function selectSlide(index) {
+            if (index < 0 || index >= slides.length) return;
+
+            currentSlideIndex = index;
+            const slide = slides[index];
+
+            // Update form
+            slideTitle.value = slide.title || '';
+            slideContent.value = slide.content || '';
+            slideType.value = slide.type || 'text';
+            slideBackground.value = slide.background || '#1f2937';
+
+            // Handle media
+            if (slide.media) {
+                mediaUrl.value = slide.media.src || '';
+                mediaAlt.value = slide.media.alt || slide.media.poster || '';
+            } else {
+                mediaUrl.value = '';
+                mediaAlt.value = '';
+            }
+
+            // Handle list items
+            renderListItems(slide.list || []);
+
+            // Update UI
+            updateMediaSection();
+            renderSlideList();
+            updatePreview();
+        }
+
+        // Render list items
+        function renderListItems(items) {
+            listItems.innerHTML = '';
+            items.forEach((item, index) => {
+                addListItemElement(item, index);
+            });
+        }
+
+        // Add list item element
+        function addListItemElement(value = '', index = -1) {
+            const listItem = document.createElement('div');
+            listItem.className = 'list-item';
+            listItem.innerHTML = `
+                <input type="text" class="form-input" value="${value}" placeholder="List item">
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
+            `;
+            listItems.appendChild(listItem);
+        }
+
+        // Update media section visibility
+        function updateMediaSection() {
+            const type = slideType.value;
+            mediaSection.style.display = (type === 'image' || type === 'video') ? 'block' : 'none';
+            mediaOptions.style.display = type === 'video' ? 'block' : 'none';
+        }
+
+        // Update slide preview
+        function updatePreview() {
+            if (currentSlideIndex < 0 || !slides[currentSlideIndex]) return;
+
+            const slide = slides[currentSlideIndex];
+            slidePreview.style.background = slide.background || '#1f2937';
+
+            // Update slideRenderer with current slides before rendering
+            slideRenderer.slides = slides;
+            slideRenderer.config = config;
+
+            slidePreview.innerHTML = slideRenderer.renderSlide(currentSlideIndex, false);
+        }
+
+        // Add new slide
+        function addSlide() {
+            const newSlide = {
+                id: slides.length,
+                type: 'text',
+                background: '#1f2937',
+                title: `Slide ${slides.length + 1}`,
+                content: '',
+                list: null,
+                media: null
+            };
+
+            slides.push(newSlide);
+
+            // Update slideRenderer with current slides
+            slideRenderer.slides = slides;
+            slideRenderer.config = config;
+
+            renderSlideList();
+            selectSlide(slides.length - 1);
+        }
+
+        // Update current slide
+        function updateSlide() {
+            if (currentSlideIndex < 0) return;
+
+            const slide = slides[currentSlideIndex];
+            slide.title = slideTitle.value;
+            slide.content = slideContent.value;
+            slide.type = slideType.value;
+            slide.background = slideBackground.value;
+
+            // Handle list items
+            const listInputs = listItems.querySelectorAll('input');
+            const listValues = Array.from(listInputs).map(input => input.value).filter(value => value.trim());
+            slide.list = listValues.length > 0 ? listValues : null;
+
+            // Handle media
+            if (slideType.value === 'image' || slideType.value === 'video') {
+                if (mediaUrl.value) {
+                    slide.media = {
+                        type: slideType.value,
+                        src: mediaUrl.value,
+                        alt: mediaAlt.value || 'Media',
+                        controls: slideType.value === 'video',
+                        poster: slideType.value === 'video' ? mediaAlt.value : null
+                    };
+                } else {
+                    slide.media = null;
+                }
+            } else {
+                slide.media = null;
+            }
+
+            // Update slideRenderer with current slides
+            slideRenderer.slides = slides;
+            slideRenderer.config = config;
+
+            renderSlideList();
+            updatePreview();
+            showStatus('Slide updated', 'success');
+        }
+
+        // Delete current slide
+        function deleteSlide() {
+            if (currentSlideIndex < 0) return;
+
+            if (confirm('Are you sure you want to delete this slide?')) {
+                slides.splice(currentSlideIndex, 1);
+
+                // Update slide IDs
+                slides.forEach((slide, index) => {
+                    slide.id = index;
+                });
+                
+                // Update slideRenderer with current slides
+                slideRenderer.slides = slides;
+                slideRenderer.config = config;
+
+                renderSlideList();
+
+                if (slides.length > 0) {
+                    selectSlide(Math.min(currentSlideIndex, slides.length - 1));
+                } else {
+                    currentSlideIndex = -1;
+                    slidePreview.innerHTML = '<div class="text-center"><h2 class="text-xl mb-4">No Slides</h2><p class="text-gray-300">Add a slide to get started</p></div>';
+                }
+
+                showStatus('Slide deleted', 'success');
+            }
+        }
+
+        // Save all slides
+        async function saveSlides() {
+            try {
+                showStatus('Saving...', 'info');
+
+                const response = await fetch('/api/slides', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ slides, config })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showStatus('Slides saved successfully!', 'success');
+                } else {
+                    showStatus(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving slides:', error);
+                showStatus('Error saving slides', 'error');
+            }
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            saveStatus.textContent = message;
+            saveStatus.className = `text-sm ${type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-blue-600'}`;
+
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    saveStatus.textContent = '';
+                }, 3000);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('add-slide').addEventListener('click', addSlide);
+        document.getElementById('update-slide').addEventListener('click', updateSlide);
+        document.getElementById('delete-slide').addEventListener('click', deleteSlide);
+        document.getElementById('save-slides').addEventListener('click', saveSlides);
+        document.getElementById('add-list-item').addEventListener('click', () => addListItemElement());
+        document.getElementById('preview-mode').addEventListener('click', () => window.open('/reader', '_blank'));
+        document.getElementById('back-home').addEventListener('click', () => window.location.href = '/');
+
+        slideType.addEventListener('change', updateMediaSection);
+
+        // Auto-update preview when form changes
+        [slideTitle, slideContent, slideBackground, mediaUrl, mediaAlt].forEach(element => {
+            element.addEventListener('input', () => {
+                if (currentSlideIndex >= 0) {
+                    updateSlide();
+                }
+            });
+        });
+
+        // Initialize
+        loadSlides();
+    </script>
+</body>
+
+</html>

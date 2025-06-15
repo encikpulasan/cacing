@@ -62,6 +62,12 @@ router.get("/test-jspdf", async (ctx) => {
   ctx.response.headers.set("Content-Type", "text/html");
 });
 
+router.get("/editor", async (ctx) => {
+  const html = await Deno.readTextFile("editor.html");
+  ctx.response.body = html;
+  ctx.response.headers.set("Content-Type", "text/html");
+});
+
 // API endpoint to get slides from markdown
 router.get("/api/slides", async (ctx) => {
   try {
@@ -77,6 +83,87 @@ router.get("/api/slides", async (ctx) => {
     console.error("Error loading slides:", error);
     ctx.response.status = 500;
     ctx.response.body = { error: "Failed to load slides" };
+  }
+});
+
+// API endpoint to save slides to markdown
+router.post("/api/slides", async (ctx) => {
+  try {
+    const body = await ctx.request.body({ type: "json" }).value;
+    const { slides, config } = body;
+
+    console.log("Saving slides to slides.md...");
+
+    // Generate markdown content
+    let markdownContent = "";
+
+    // Add config section
+    if (config) {
+      markdownContent += "<!-- SLIDE_CONFIG\n";
+      for (const [key, value] of Object.entries(config)) {
+        markdownContent += `${key}: "${value}"\n`;
+      }
+      markdownContent += "-->\n\n";
+    }
+
+    // Add slides
+    slides.forEach((slide: any, index: number) => {
+      if (index > 0) {
+        markdownContent += "\n---\n\n";
+      }
+
+      // Add slide config comment
+      markdownContent += `<!-- SLIDE: type=${
+        slide.type || "text"
+      }, background=${slide.background || "#1f2937"} -->\n\n`;
+
+      // Add title
+      if (slide.title) {
+        markdownContent += `# ${slide.title}\n\n`;
+      }
+
+      // Add content
+      if (slide.content) {
+        markdownContent += `${slide.content}\n\n`;
+      }
+
+      // Add list items
+      if (slide.list && slide.list.length > 0) {
+        slide.list.forEach((item: string) => {
+          markdownContent += `- ${item}\n`;
+        });
+        markdownContent += "\n";
+      }
+
+      // Add media
+      if (slide.media) {
+        if (slide.media.type === "image") {
+          markdownContent += `![${
+            slide.media.alt || "Image"
+          }](${slide.media.src})\n\n`;
+        } else if (slide.media.type === "video") {
+          markdownContent += `<video${slide.media.controls ? " controls" : ""}${
+            slide.media.poster ? ` poster="${slide.media.poster}"` : ""
+          }>\n`;
+          markdownContent +=
+            `  <source src="${slide.media.src}" type="video/mp4">\n`;
+          markdownContent += `</video>\n\n`;
+        }
+      }
+    });
+
+    // Write to file
+    await Deno.writeTextFile("slides.md", markdownContent);
+
+    console.log("Slides saved successfully");
+    ctx.response.body = { success: true, message: "Slides saved successfully" };
+  } catch (error) {
+    console.error("Error saving slides:", error);
+    ctx.response.status = 500;
+    ctx.response.body = {
+      error: "Failed to save slides",
+      details: error instanceof Error ? error.message : String(error),
+    };
   }
 });
 
