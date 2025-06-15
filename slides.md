@@ -4,15 +4,6 @@ author: "Unknown"
 theme: "dark"
 -->
 
-<!-- SLIDE: type=text, background=#1f2937, titleStyle={'fontSize':'48px','fontWeight':'700','textAlign':'center','color':'#ff6b6b'}, contentStyle={'fontFamily':'Arial, sans-serif','fontSize':'20px','color':'#4ecdc4'} -->
-
-# Typography Test
-
-This is a test with custom typography
-
-
----
-
 <!-- SLIDE: type=text, background=#002a66, titleStyle={'fontSize':'24px','fontWeight':'700','textAlign':'center','color':'#e5eeff'} -->
 
 # Selamat Datang ke Majlis Serahan Kad Akses Taman Nada Alam 5

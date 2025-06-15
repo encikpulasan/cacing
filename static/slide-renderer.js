@@ -41,7 +41,7 @@ export class SlideRenderer {
     // Professional mode indicator
     const modeIndicator = isPresenter 
       ? '<div class="mb-4 px-4 py-2 rounded-full text-xs font-semibold bg-blue-500 bg-opacity-20 border border-blue-400 border-opacity-30 backdrop-filter backdrop-blur-sm">🎤 PRESENTER</div>'
-      : '<div class="viewer-badge mb-4 px-4 py-2 rounded-full text-xs font-semibold">👁️ VIEWER</div>';
+      : '';
 
     let slideContent = '';
 
