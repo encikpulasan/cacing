@@ -112,10 +112,27 @@ router.post("/api/slides", async (ctx) => {
         markdownContent += "\n---\n\n";
       }
 
-      // Add slide config comment
-      markdownContent += `<!-- SLIDE: type=${
-        slide.type || "text"
-      }, background=${slide.background || "#1f2937"} -->\n\n`;
+      // Add slide config comment with typography options
+      const slideConfig = `type=${slide.type || "text"}, background=${
+        slide.background || "#1f2937"
+      }`;
+      const titleStyle = slide.titleStyle
+        ? `, titleStyle=${JSON.stringify(slide.titleStyle).replace(/"/g, "'")}`
+        : "";
+      const contentStyle = slide.contentStyle
+        ? `, contentStyle=${
+          JSON.stringify(slide.contentStyle).replace(/"/g, "'")
+        }`
+        : "";
+      const listStyle = slide.listStyle
+        ? `, listStyle=${JSON.stringify(slide.listStyle).replace(/"/g, "'")}`
+        : "";
+      const layout = slide.layout && slide.layout !== "default"
+        ? `, layout=${slide.layout}`
+        : "";
+
+      markdownContent +=
+        `<!-- SLIDE: ${slideConfig}${titleStyle}${contentStyle}${listStyle}${layout} -->\n\n`;
 
       // Add title
       if (slide.title) {
@@ -167,6 +184,177 @@ router.post("/api/slides", async (ctx) => {
   }
 });
 
+// API endpoint for file uploads
+router.post("/api/upload", async (ctx) => {
+  try {
+    const body = ctx.request.body({ type: "form-data" });
+    const formData = await body.value.read();
+
+    if (!formData.files || formData.files.length === 0) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "No file uploaded" };
+      return;
+    }
+
+    const file = formData.files[0];
+    if (!file.filename || !file.content) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "Invalid file data" };
+      return;
+    }
+
+    const fileExtension = file.filename.split(".").pop()?.toLowerCase();
+
+    // Validate file type
+    const allowedExtensions = [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp",
+      "mp4",
+      "webm",
+      "mov",
+    ];
+    if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        error: "Invalid file type. Allowed: " + allowedExtensions.join(", "),
+      };
+      return;
+    }
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 8);
+    const newFilename = `${timestamp}_${randomId}.${fileExtension}`;
+
+    // Determine upload directory
+    const isVideo = ["mp4", "webm", "mov"].includes(fileExtension);
+    const uploadDir = isVideo ? "static/videos" : "static/images";
+    const filePath = `${uploadDir}/${newFilename}`;
+
+    // Ensure directory exists
+    try {
+      await Deno.mkdir(uploadDir, { recursive: true });
+    } catch (error) {
+      // Directory might already exist, ignore error
+    }
+
+    // Save file
+    await Deno.writeFile(filePath, file.content);
+
+    console.log(`File uploaded: ${filePath}`);
+
+    ctx.response.body = {
+      success: true,
+      filename: newFilename,
+      path: `/${filePath}`,
+      type: isVideo ? "video" : "image",
+      size: file.content.length,
+    };
+  } catch (error) {
+    console.error("Upload error:", error);
+    ctx.response.status = 500;
+    ctx.response.body = {
+      error: "Upload failed",
+      details: error instanceof Error ? error.message : String(error),
+    };
+  }
+});
+
+// Server-Sent Events endpoint
+router.get("/events", (ctx) => {
+  const target = ctx.sendEvents();
+  connections.add(target);
+
+  console.log(
+    `New SSE connection established. Total connections: ${connections.size}`,
+  );
+
+  // Send current slide immediately
+  try {
+    target.dispatchMessage({
+      data: JSON.stringify({ type: "slide", index: currentSlide }),
+    });
+  } catch (error) {
+    console.log("Failed to send initial message:", error);
+    connections.delete(target);
+  }
+
+  // Handle connection close
+  const cleanup = () => {
+    connections.delete(target);
+    console.log(
+      `SSE connection closed. Remaining connections: ${connections.size}`,
+    );
+  };
+
+  // Listen for various close events
+  target.addEventListener("close", cleanup);
+  target.addEventListener("error", cleanup);
+});
+
+// Update slide endpoint
+router.post("/slide", async (ctx) => {
+  const body = await ctx.request.body({ type: "json" }).value;
+  currentSlide = body.index;
+
+  console.log(
+    `Slide updated to: ${currentSlide}. Broadcasting to ${connections.size} connections`,
+  );
+
+  // Broadcast to all connected clients
+  const message = { type: "slide", index: currentSlide };
+  const deadConnections = new Set();
+
+  for (const connection of connections) {
+    try {
+      connection.dispatchMessage({
+        data: JSON.stringify(message),
+      });
+    } catch (error) {
+      console.log(
+        "Failed to send message to connection, marking for removal:",
+        String(error),
+      );
+      deadConnections.add(connection);
+    }
+  }
+
+  // Clean up dead connections
+  for (const deadConnection of deadConnections) {
+    connections.delete(deadConnection);
+  }
+
+  console.log(
+    `Message sent successfully to ${
+      connections.size - deadConnections.size
+    } connections`,
+  );
+
+  ctx.response.body = { success: true };
+});
+
+// Sync endpoint for presenter to update current slide
+router.post("/api/sync", async (ctx) => {
+  const body = await ctx.request.body({ type: "json" }).value;
+  currentSlide = body.slide;
+  console.log(`Slide synced to: ${currentSlide}`);
+  ctx.response.body = { success: true };
+});
+
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+console.log("🚀 Server running on http://localhost:8000");
+console.log("📝 Edit slides.md to update your presentation content");
+console.log("🎤 Presenter: http://localhost:8000/presenter");
+console.log("👀 Viewer: http://localhost:8000/viewer");
+console.log("📖 Reader: http://localhost:8000/reader");
+
+await app.listen({ port: 8000 });
+
 // Function to parse markdown slides
 function parseMarkdownSlides(markdownText: string) {
   console.log("Parsing markdown content...");
@@ -177,11 +365,29 @@ function parseMarkdownSlides(markdownText: string) {
   // Split by slide separators (---)
   const sections = markdownText.split(/^---$/gm);
 
-  // Skip the first section if it only contains config
-  const slidesSections = sections.filter((section) => {
-    const trimmed = section.trim();
-    return trimmed && !trimmed.startsWith("<!-- SLIDE_CONFIG");
-  });
+  // Process sections - the first section might contain both config and first slide
+  const slidesSections = [];
+
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i].trim();
+    if (!section) continue;
+
+    if (i === 0) {
+      // First section - remove config and keep slide content
+      const withoutConfig = section.replace(
+        /<!-- SLIDE_CONFIG[\s\S]*?-->\s*/g,
+        "",
+      ).trim();
+      if (withoutConfig && withoutConfig.includes("<!-- SLIDE:")) {
+        slidesSections.push(withoutConfig);
+      }
+    } else {
+      // Other sections - include if they have slide content
+      if (section.includes("<!-- SLIDE:")) {
+        slidesSections.push(section);
+      }
+    }
+  }
 
   const slides = slidesSections.map((section, index) => {
     return parseSlide(section.trim(), index);
@@ -232,10 +438,43 @@ function parseSlide(section: string, index: number) {
   // Parse markdown content
   const parsedContent = parseMarkdownContent(content);
 
+  // Parse typography styles
+  let titleStyle = null;
+  let contentStyle = null;
+  let listStyle = null;
+
+  if (slideConfig.titleStyle) {
+    try {
+      titleStyle = JSON.parse(slideConfig.titleStyle);
+    } catch (e) {
+      console.warn("Failed to parse titleStyle JSON:", e);
+    }
+  }
+
+  if (slideConfig.contentStyle) {
+    try {
+      contentStyle = JSON.parse(slideConfig.contentStyle);
+    } catch (e) {
+      console.warn("Failed to parse contentStyle JSON:", e);
+    }
+  }
+
+  if (slideConfig.listStyle) {
+    try {
+      listStyle = JSON.parse(slideConfig.listStyle);
+    } catch (e) {
+      console.warn("Failed to parse listStyle JSON:", e);
+    }
+  }
+
   return {
     id: index,
     type: slideConfig.type || "text",
     background: slideConfig.background || "#1f2937",
+    layout: slideConfig.layout || "default",
+    titleStyle: titleStyle,
+    contentStyle: contentStyle,
+    listStyle: listStyle,
     title: parsedContent.title || `Slide ${index + 1}`,
     content: parsedContent.content,
     list: parsedContent.list,
@@ -253,8 +492,45 @@ function extractSlideConfig(section: string) {
   if (!configMatch) return config;
 
   const configText = configMatch[1];
-  const pairs = configText.split(",");
 
+  // Handle JSON-like attributes (titleStyle, contentStyle, listStyle)
+  const titleStyleMatch = configText.match(/titleStyle=\{([^}]+)\}/);
+  if (titleStyleMatch) {
+    try {
+      const jsonStr = "{" + titleStyleMatch[1].replace(/'/g, '"') + "}";
+      config.titleStyle = jsonStr;
+    } catch (e) {
+      console.warn("Failed to parse titleStyle:", e);
+    }
+  }
+
+  const contentStyleMatch = configText.match(/contentStyle=\{([^}]+)\}/);
+  if (contentStyleMatch) {
+    try {
+      const jsonStr = "{" + contentStyleMatch[1].replace(/'/g, '"') + "}";
+      config.contentStyle = jsonStr;
+    } catch (e) {
+      console.warn("Failed to parse contentStyle:", e);
+    }
+  }
+
+  const listStyleMatch = configText.match(/listStyle=\{([^}]+)\}/);
+  if (listStyleMatch) {
+    try {
+      const jsonStr = "{" + listStyleMatch[1].replace(/'/g, '"') + "}";
+      config.listStyle = jsonStr;
+    } catch (e) {
+      console.warn("Failed to parse listStyle:", e);
+    }
+  }
+
+  // Handle simple key=value pairs (remove style attributes first)
+  const cleanConfigText = configText
+    .replace(/titleStyle=\{[^}]+\}/g, "")
+    .replace(/contentStyle=\{[^}]+\}/g, "")
+    .replace(/listStyle=\{[^}]+\}/g, "");
+
+  const pairs = cleanConfigText.split(",");
   for (const pair of pairs) {
     const [key, value] = pair.split("=").map((s) => s.trim());
     if (key && value) {
@@ -387,95 +663,3 @@ function parseInlineMarkdown(text: string): string {
       '<a href="$2" class="text-blue-400 hover:text-blue-300 underline" target="_blank">$1</a>',
     );
 }
-
-// Server-Sent Events endpoint
-router.get("/events", (ctx) => {
-  const target = ctx.sendEvents();
-  connections.add(target);
-
-  console.log(
-    `New SSE connection established. Total connections: ${connections.size}`,
-  );
-
-  // Send current slide immediately
-  try {
-    target.dispatchMessage({
-      data: JSON.stringify({ type: "slide", index: currentSlide }),
-    });
-  } catch (error) {
-    console.log("Failed to send initial message:", error);
-    connections.delete(target);
-  }
-
-  // Handle connection close
-  const cleanup = () => {
-    connections.delete(target);
-    console.log(
-      `SSE connection closed. Remaining connections: ${connections.size}`,
-    );
-  };
-
-  // Listen for various close events
-  target.addEventListener("close", cleanup);
-  target.addEventListener("error", cleanup);
-});
-
-// Update slide endpoint
-router.post("/slide", async (ctx) => {
-  const body = await ctx.request.body({ type: "json" }).value;
-  currentSlide = body.index;
-
-  console.log(
-    `Slide updated to: ${currentSlide}. Broadcasting to ${connections.size} connections`,
-  );
-
-  // Broadcast to all connected clients
-  const message = { type: "slide", index: currentSlide };
-  const deadConnections = new Set();
-
-  for (const connection of connections) {
-    try {
-      connection.dispatchMessage({
-        data: JSON.stringify(message),
-      });
-    } catch (error) {
-      console.log(
-        "Failed to send message to connection, marking for removal:",
-        String(error),
-      );
-      deadConnections.add(connection);
-    }
-  }
-
-  // Clean up dead connections
-  for (const deadConnection of deadConnections) {
-    connections.delete(deadConnection);
-  }
-
-  console.log(
-    `Message sent successfully to ${
-      connections.size - deadConnections.size
-    } connections`,
-  );
-
-  ctx.response.body = { success: true };
-});
-
-// Sync endpoint for presenter to update current slide
-router.post("/api/sync", async (ctx) => {
-  const body = await ctx.request.body({ type: "json" }).value;
-  currentSlide = body.slide;
-  console.log(`Slide synced to: ${currentSlide}`);
-  ctx.response.body = { success: true };
-});
-
-app.use(router.routes());
-app.use(router.allowedMethods());
-
-console.log("🚀 Server running on http://localhost:8000");
-console.log("📝 Edit slides.md to update your presentation content");
-console.log("🎤 Presenter: http://localhost:8000/presenter");
-console.log("👀 Viewer: http://localhost:8000/viewer");
-console.log("📖 Reader: http://localhost:8000/reader");
-
-await app.listen({ port: 8000 });
