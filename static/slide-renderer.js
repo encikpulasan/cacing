@@ -97,18 +97,32 @@ export class SlideRenderer {
       return this.renderTextSlide(slide);
     }
 
-    return `
-      <h1 class="slide-title text-3xl md:text-5xl font-bold mb-6 text-white leading-tight">${slide.title}</h1>
-      <div class="flex flex-col lg:flex-row items-center gap-8 max-w-6xl w-full">
-        <div class="flex-1 text-left">
-          <div class="slide-text text-lg md:text-xl text-gray-100 leading-relaxed">${slide.content}</div>
+    // If there's content, show it above the image, otherwise just center the image
+    if (slide.content && slide.content.trim()) {
+      return `
+        <h1 class="slide-title text-3xl md:text-5xl font-bold mb-6 text-white leading-tight">${slide.title}</h1>
+        <div class="slide-text text-lg md:text-xl mb-8 text-gray-100 max-w-4xl mx-auto leading-relaxed text-center">${slide.content}</div>
+        <div class="flex justify-center items-center w-full">
+          <div class="max-w-4xl w-full">
+            <img src="${media.src}" alt="${media.alt}" class="w-full h-auto rounded-xl shadow-2xl mx-auto" 
+                 style="max-height: 60vh; object-fit: contain;"
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4='; this.alt='Image not found';" />
+          </div>
         </div>
-        <div class="flex-1">
-          <img src="${media.src}" alt="${media.alt}" class="w-full h-auto rounded-xl shadow-2xl" 
-               onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4='; this.alt='Image not found';" />
+      `;
+    } else {
+      // No content, just center the image with title
+      return `
+        <h1 class="slide-title text-3xl md:text-5xl font-bold mb-8 text-white leading-tight">${slide.title}</h1>
+        <div class="flex justify-center items-center w-full flex-1">
+          <div class="max-w-5xl w-full">
+            <img src="${media.src}" alt="${media.alt}" class="w-full h-auto rounded-xl shadow-2xl mx-auto" 
+                 style="max-height: 70vh; object-fit: contain;"
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4='; this.alt='Image not found';" />
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
   }
 
   renderVideoSlide(slide) {
@@ -139,26 +153,53 @@ export class SlideRenderer {
     let mediaElement = '';
     if (media) {
       if (media.type === 'image') {
-        mediaElement = `<img src="${media.src}" alt="${media.alt}" class="w-full h-auto rounded-xl shadow-2xl" 
+        mediaElement = `<img src="${media.src}" alt="${media.alt}" class="w-full h-auto rounded-xl shadow-2xl mx-auto" 
+                       style="max-height: 50vh; object-fit: contain;"
                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4='; this.alt='Image not found';" />`;
       } else if (media.type === 'video') {
-        mediaElement = `<video class="w-full rounded-xl shadow-2xl" ${media.controls ? 'controls' : ''} ${media.poster ? `poster="${media.poster}"` : ''}>
+        mediaElement = `<video class="w-full rounded-xl shadow-2xl mx-auto" style="max-height: 50vh;" ${media.controls ? 'controls' : ''} ${media.poster ? `poster="${media.poster}"` : ''}>
                         <source src="${media.src}" type="video/mp4">
                         <p class="text-gray-300">Your browser doesn't support video playback.</p>
                       </video>`;
       }
     }
 
-    return `
-      <h1 class="slide-title text-3xl md:text-5xl font-bold mb-6 text-white leading-tight">${slide.title}</h1>
-      <div class="flex flex-col lg:flex-row items-start gap-8 max-w-6xl w-full">
-        <div class="flex-1 text-left">
-          <div class="slide-text text-lg md:text-xl mb-6 text-gray-100 leading-relaxed">${slide.content}</div>
-          ${listItems}
+    // If we have both content/list and media, use side-by-side layout
+    if ((slide.content || listItems) && mediaElement) {
+      return `
+        <h1 class="slide-title text-3xl md:text-5xl font-bold mb-6 text-white leading-tight">${slide.title}</h1>
+        <div class="flex flex-col lg:flex-row items-center gap-8 max-w-6xl w-full">
+          <div class="flex-1 text-left">
+            ${slide.content ? `<div class="slide-text text-lg md:text-xl mb-6 text-gray-100 leading-relaxed">${slide.content}</div>` : ''}
+            ${listItems}
+          </div>
+          <div class="flex-1 flex justify-center">
+            ${mediaElement}
+          </div>
         </div>
-        ${mediaElement ? `<div class="flex-1">${mediaElement}</div>` : ''}
-      </div>
-    `;
+      `;
+    } else if (mediaElement) {
+      // Only media, center it
+      return `
+        <h1 class="slide-title text-3xl md:text-5xl font-bold mb-8 text-white leading-tight">${slide.title}</h1>
+        <div class="flex justify-center items-center w-full flex-1">
+          <div class="max-w-5xl w-full">
+            ${mediaElement}
+          </div>
+        </div>
+      `;
+    } else {
+      // Only text content, center it
+      return `
+        <h1 class="slide-title text-3xl md:text-5xl font-bold mb-6 text-white leading-tight">${slide.title}</h1>
+        <div class="max-w-4xl mx-auto text-center">
+          ${slide.content ? `<div class="slide-text text-lg md:text-xl mb-6 text-gray-100 leading-relaxed">${slide.content}</div>` : ''}
+          <div class="text-left max-w-3xl mx-auto">
+            ${listItems}
+          </div>
+        </div>
+      `;
+    }
   }
 
   renderPresenterControls(slideIndex) {

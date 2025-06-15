@@ -4,7 +4,7 @@ const app = new Application();
 const router = new Router();
 
 // Store current slide state
-let currentSlideIndex = 0;
+let currentSlide = 0;
 
 // Store SSE connections
 const connections = new Set<any>();
@@ -44,8 +44,20 @@ router.get("/viewer", async (ctx) => {
   ctx.response.headers.set("Content-Type", "text/html");
 });
 
+router.get("/reader", async (ctx) => {
+  const html = await Deno.readTextFile("reader.html");
+  ctx.response.body = html;
+  ctx.response.headers.set("Content-Type", "text/html");
+});
+
 router.get("/test-sync", async (ctx) => {
   const html = await Deno.readTextFile("test-sync.html");
+  ctx.response.body = html;
+  ctx.response.headers.set("Content-Type", "text/html");
+});
+
+router.get("/test-jspdf", async (ctx) => {
+  const html = await Deno.readTextFile("test-jspdf.html");
   ctx.response.body = html;
   ctx.response.headers.set("Content-Type", "text/html");
 });
@@ -301,7 +313,7 @@ router.get("/events", (ctx) => {
   // Send current slide immediately
   try {
     target.dispatchMessage({
-      data: JSON.stringify({ type: "slide", index: currentSlideIndex }),
+      data: JSON.stringify({ type: "slide", index: currentSlide }),
     });
   } catch (error) {
     console.log("Failed to send initial message:", error);
@@ -324,14 +336,14 @@ router.get("/events", (ctx) => {
 // Update slide endpoint
 router.post("/slide", async (ctx) => {
   const body = await ctx.request.body({ type: "json" }).value;
-  currentSlideIndex = body.index;
+  currentSlide = body.index;
 
   console.log(
-    `Slide updated to: ${currentSlideIndex}. Broadcasting to ${connections.size} connections`,
+    `Slide updated to: ${currentSlide}. Broadcasting to ${connections.size} connections`,
   );
 
   // Broadcast to all connected clients
-  const message = { type: "slide", index: currentSlideIndex };
+  const message = { type: "slide", index: currentSlide };
   const deadConnections = new Set();
 
   for (const connection of connections) {
@@ -362,6 +374,14 @@ router.post("/slide", async (ctx) => {
   ctx.response.body = { success: true };
 });
 
+// Sync endpoint for presenter to update current slide
+router.post("/api/sync", async (ctx) => {
+  const body = await ctx.request.body({ type: "json" }).value;
+  currentSlide = body.slide;
+  console.log(`Slide synced to: ${currentSlide}`);
+  ctx.response.body = { success: true };
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 
@@ -369,5 +389,6 @@ console.log("🚀 Server running on http://localhost:8000");
 console.log("📝 Edit slides.md to update your presentation content");
 console.log("🎤 Presenter: http://localhost:8000/presenter");
 console.log("👀 Viewer: http://localhost:8000/viewer");
+console.log("📖 Reader: http://localhost:8000/reader");
 
 await app.listen({ port: 8000 });

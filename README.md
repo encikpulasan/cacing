@@ -12,12 +12,37 @@ real-time synchronization across all devices.
 - 🎨 **Rich formatting** - Support for **bold**, _italic_, `code`, links, lists,
   and more
 - 🖼️ **Media support** - Images and videos with responsive design
-- 🎤 **Separate presenter/viewer modes** - Dedicated interfaces for presenting
-  and viewing
+- 🎤 **Three viewing modes** - Presenter, Viewer, and Reader modes for different
+  use cases
+- 📄 **PDF export** - Download slides as PDF with one slide per page
 - ⌨️ **Keyboard navigation** - Arrow keys, spacebar for easy slide control
 - 🌐 **Deploy anywhere** - Works on Deno Deploy, Vercel, or any Deno-compatible
   platform
 - 📱 **Mobile responsive** - Works great on phones, tablets, and desktops
+
+## 🎭 Viewing Modes
+
+### 🎤 Presenter Mode
+
+- Full slide control with navigation
+- Real-time sync to all viewers
+- Keyboard shortcuts and fullscreen
+- **URL**: `/presenter`
+
+### 👀 Viewer Mode
+
+- Automatically syncs with presenter
+- No navigation controls
+- Perfect for audience members
+- **URL**: `/viewer`
+
+### 📖 Reader Mode
+
+- Independent slide navigation
+- Browse slides at your own pace
+- PDF download functionality
+- Touch/swipe support for mobile
+- **URL**: `/reader`
 
 ## 🚀 Quick Start
 
@@ -90,6 +115,7 @@ deno run --allow-net --allow-read main.ts
 - **Home**: http://localhost:8000
 - **Presenter**: http://localhost:8000/presenter
 - **Viewer**: http://localhost:8000/viewer
+- **Reader**: http://localhost:8000/reader
 
 ## 📝 Markdown Slide Syntax
 
@@ -175,6 +201,23 @@ Text content with lists:
 - Lists: `- item` or `1. item`
 - Headers: `# H1`, `## H2`, etc.
 
+## 📄 PDF Export
+
+The Reader mode includes a powerful PDF export feature:
+
+- **One slide per page** in landscape format
+- **High-quality rendering** using html2canvas
+- **Maintains formatting** and media content
+- **Progress indicator** during generation
+- **Automatic filename** with timestamp
+
+### How to Export PDF
+
+1. Go to Reader mode (`/reader`)
+2. Click the "Download PDF" button
+3. Wait for processing (progress bar shows status)
+4. PDF automatically downloads when complete
+
 ## 🎮 Controls
 
 ### Presenter Mode
@@ -188,6 +231,15 @@ Text content with lists:
 
 - **F or F11**: Toggle fullscreen
 - Automatically syncs with presenter
+
+### Reader Mode
+
+- **Arrow Keys**: Navigate slides (←/→ or ↑/↓)
+- **Spacebar**: Next slide
+- **Home/End**: Jump to first/last slide
+- **Escape**: Exit fullscreen
+- **Touch/Swipe**: Mobile navigation
+- **PDF Button**: Download as PDF
 
 ## 🚀 Deployment
 
